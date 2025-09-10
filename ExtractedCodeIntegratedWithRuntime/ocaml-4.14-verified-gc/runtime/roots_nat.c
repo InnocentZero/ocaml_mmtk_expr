@@ -246,6 +246,7 @@ void caml_register_dyn_global(void *v) {
 
 /* Call [caml_oldify_one] on (at least) all the roots that point to the minor
    heap. */
+// TODO: Isfarul oldification of the roots
 void caml_oldify_local_roots (void)
 {
   char * sp;
@@ -271,6 +272,8 @@ void caml_oldify_local_roots (void)
       }
     }
   }
+
+  // TODO:Isfarul (why is this not set to i??)
   caml_globals_scanned = caml_globals_inited;
 
   /* Dynamic global roots */

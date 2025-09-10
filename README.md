@@ -9,6 +9,68 @@ and then running the benchmarks.
 
 ## Setup Instructions
 
+### Ocamlopt build instructions
+
+- Build `runtime/libasmrun.a` in the verified gc directory.
+- Copy it over to `runtime/` in the unchanged directory. Also copy it over to
+  any of the folders where you finally do the build.
+- Call `make ocamlopt.vergc` in the unchanged directory. Also copy it over to
+  any of the folders where you finally do the build.
+- Call `make all std_exit.cmx stdlib.cma ctdlib.cmxa` in `stdlib/` directory in
+  the unchanged directory.
+- Call `make install installopt installopt-default` in `stdlib/` directory in
+  the unchanged directory. This might give an error about the path not being
+  present, manually mkdir it.
+- Finally, call `make` and `make install` from the root of the unchanged
+  directory after this. There will be errors but it'll get the job done.
+
+TL;DR: Copy over these finally after building everything else:
+  - `libasmrun.a` from `runtime` in `verified-gc` directory.
+  - `ocamlopt.vergc` from root in `unchanged` directory.
+
+Copy them to whichever folder your testcase is in. Compilation will
+automatically pick up the local `libasmrun.a` over the one installed.
+
+### Failing testcase for `ocamlopt.vergc`
+
+```ocaml
+let rec tail lst = match lst with
+  | [] -> None 
+  | [ t ] -> Some t
+  | _ :: t -> tail t
+
+(* Uncommenting this makes everything work for some reason *)
+(* let (=) a b = match a, b with *)
+  (* | None, None -> true *)
+  (* | Some a, Some b when a = b -> true *)
+  (* | _, _ -> false *)
+
+let () =
+  (* works *)
+  print_endline "I have no mouth yet I must scream!!!!";
+  (* works *)
+  if (tail [] = None) then print_endline "NONE!";
+  (* works *)
+  begin match tail [3; 4] with
+    | Some 4 -> print_endline "FOURRRRRRR"
+    | Some x -> print_int x; print_endline ""
+    | None -> print_endline "WAT"
+  end;
+  (* doesn't work *)
+  begin if tail [ 3; 4 ] = Some 4 then
+    print_endline "SOME 4"
+  else
+    print_endline "WAT"
+  end;
+  (* works *)
+  assert (tail [] = None);
+  (* works *)
+  assert (Some 1 = Some 1);
+  (* doesn't work with anything *)
+  (* assert failures lead to segfault *)
+  assert (tail [ 1 ] = Some 1);
+```
+
 ### Tools required
 
 - Git

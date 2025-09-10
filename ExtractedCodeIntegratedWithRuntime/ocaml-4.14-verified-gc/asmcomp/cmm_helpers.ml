@@ -1881,6 +1881,7 @@ let send_function arity =
     fun_dbg;
    }
 
+(* TODO:Isfarul have a look here: No Reduce_code_size *)
 let apply_function arity =
   let (args, clos, body) = apply_function_body arity in
   let all_args = args @ [clos] in

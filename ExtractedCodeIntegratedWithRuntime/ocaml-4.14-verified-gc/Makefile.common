@@ -60,6 +60,8 @@ else
   BOOT_OCAMLC = $(OCAMLRUN) $(ROOTDIR)/boot/ocamlc
 endif
 
+# BOOT_OCAMLC = /home/innocentzero/.opam/default/bin/ocamlc.opt
+
 ifeq "$(BOOTSTRAPPING_FLEXDLL)" "false"
   FLEXLINK_ENV =
   CAMLOPT_CMD = $(CAMLOPT)
@@ -150,7 +152,9 @@ BOOT_OCAMLLEX ?= $(OCAMLRUN) $(ROOTDIR)/boot/ocamllex
 
 OCAMLLEX ?= $(BEST_OCAMLLEX)
 
-OCAMLLEXFLAGS ?= -q
+# TODO: Random change from my end
+# OCAMLLEXFLAGS ?= -q
+OCAMLLEXFLAGS ?= 
 
 %.ml: %.mll
 	$(OCAMLLEX) $(OCAMLLEXFLAGS) $<

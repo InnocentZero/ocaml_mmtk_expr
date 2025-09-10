@@ -306,8 +306,12 @@ libcamlrun_pic.$(A): $(libcamlrunpic_OBJECTS)
 libcamlrun_shared.$(SO): $(libcamlrunpic_OBJECTS)
 	$(MKDLL) -o $@ $^ $(BYTECCLIBS)
 
-libasmrun.$(A): $(libasmrun_OBJECTS)
-	$(call MKLIB,$@, $^ $(LIBS))
+libasmrun.$(A): $(libasmrun_OBJECTS) libvergc.a librust_allocator.a
+	mkdir -p temp_objs
+	cd temp_objs && ar x ../libvergc.a
+	cd temp_objs && ar x ../librust_allocator.a
+	$(call MKLIB,$@, $(libasmrun_OBJECTS) temp_objs/*.o)
+	rm -rf temp_objs
 
 libasmrund.$(A): $(libasmrund_OBJECTS)
 	$(call MKLIB,$@, $^ $(LIBS)

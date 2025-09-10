@@ -131,32 +131,47 @@ let rec regalloc ~ppf_dump round fd =
     Reg.reinit(); Liveness.fundecl newfd; regalloc ~ppf_dump (round + 1) newfd
   end else newfd
 
+(* TODO:Isfarul WHYYYY *)
 let (++) x f = f x
 
+(* TODO:Isfarul This is where all the passes are done. Check where the Mach
+   pass gets its prameters from *)
+(* TODO:Isfarul the mach pass gets its options unchanged from the
+   Cmm.fundecl.fun_codegen_options *)
 let compile_fundecl ~ppf_dump ~funcnames fd_cmm =
   Proc.init ();
   Reg.reset();
   fd_cmm
   ++ Profile.record ~accumulate:true "cmm_invariants" (cmm_invariants ppf_dump)
+  (* TODO:Isfarul copies from argument *)
   ++ Profile.record ~accumulate:true "selection"
                     (Selection.fundecl ~future_funcnames:funcnames)
+  (* TODO:Isfarul copies from argument *)
   ++ Profile.record ~accumulate:true "polling"
                     (Polling.instrument_fundecl ~future_funcnames:funcnames)
   ++ pass_dump_if ppf_dump dump_selection "After instruction selection"
+  (* TODO:Isfarul copies from argument *)
   ++ Profile.record ~accumulate:true "comballoc" Comballoc.fundecl
   ++ pass_dump_if ppf_dump dump_combine "After allocation combining"
+  (* TODO:Isfarul copies from argument *)
   ++ Profile.record ~accumulate:true "cse" CSE.fundecl
   ++ pass_dump_if ppf_dump dump_cse "After CSE"
+  (* TODO:Isfarul returns the same *)
   ++ Profile.record ~accumulate:true "liveness" liveness
+  (* TODO:Isfarul copies from argument *)
   ++ Profile.record ~accumulate:true "deadcode" Deadcode.fundecl
   ++ pass_dump_if ppf_dump dump_live "Liveness analysis"
+  (* TODO:Isfarul copies from argument *)
   ++ Profile.record ~accumulate:true "spill" Spill.fundecl
   ++ Profile.record ~accumulate:true "liveness" liveness
   ++ pass_dump_if ppf_dump dump_spill "After spilling"
+  (* TODO:Isfarul copies from argument *)
   ++ Profile.record ~accumulate:true "split" Split.fundecl
   ++ pass_dump_if ppf_dump dump_split "After live range splitting"
+  (* TODO:Isfarul returns the same *)
   ++ Profile.record ~accumulate:true "liveness" liveness
   ++ Profile.record ~accumulate:true "regalloc" (regalloc ~ppf_dump 1)
+  (* TODO:Isfarul actual investigation *)
   ++ Profile.record ~accumulate:true "linearize" Linearize.fundecl
   ++ pass_dump_linear_if ppf_dump dump_linear "Linearized code"
   ++ Profile.record ~accumulate:true "scheduling" Scheduling.fundecl

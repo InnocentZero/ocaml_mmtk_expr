@@ -211,6 +211,7 @@ let scan_file file tolink = match file with
 
 (* Second pass: generate the startup file and link it with everything else *)
 
+(* TODO:Isfarul not this *)
 let force_linking_of_startup ~ppf_dump =
   Asmgen.compile_phrase ~ppf_dump
     (Cmm.Cdata ([Cmm.Csymbol_address "caml_startup"]))
@@ -228,6 +229,7 @@ let make_globals_map units_list ~crc_interfaces =
       (name, intf, None, []) :: acc)
     crc_interfaces defined
 
+(* TODO:Isfarul This function starts here *)
 let make_startup_file ~ppf_dump units_list ~crc_interfaces =
   let compile_phrase p = Asmgen.compile_phrase ~ppf_dump p in
   Location.input_name := "caml_startup"; (* set name of "current" input *)
@@ -236,27 +238,39 @@ let make_startup_file ~ppf_dump units_list ~crc_interfaces =
   Emit.begin_assembly ();
   let name_list =
     List.flatten (List.map (fun (info,_,_) -> info.ui_defines) units_list) in
+    (* TODO:Isfarul has Cmm.Reduce_code_size *)
   compile_phrase (Cmm_helpers.entry_point name_list);
   let units = List.map (fun (info,_,_) -> info) units_list in
+    (* TODO:Isfarul check this one *)
   List.iter compile_phrase (Cmm_helpers.generic_functions false units);
   Array.iteri
+    (* TODO:Isfarul nothing here: Cdata *)
     (fun i name -> compile_phrase (Cmm_helpers.predef_exception i name))
     Runtimedef.builtin_exceptions;
+    (* TODO:Isfarul nothing here: Cdata *)
   compile_phrase (Cmm_helpers.global_table name_list);
   let globals_map = make_globals_map units_list ~crc_interfaces in
+    (* TODO:Isfarul nothing here: Cdata *)
   compile_phrase (Cmm_helpers.globals_map globals_map);
+    (* TODO:Isfarul nothing here: Cdata *)
   compile_phrase(Cmm_helpers.data_segment_table ("_startup" :: name_list));
   if !Clflags.function_sections then
+    (* TODO:Isfarul nothing here: Cdata *)
     compile_phrase
       (Cmm_helpers.code_segment_table("_hot" :: "_startup" :: name_list))
   else
+    (* TODO:Isfarul nothing here: Cdata *)
     compile_phrase(Cmm_helpers.code_segment_table("_startup" :: name_list));
   let all_names = "_startup" :: "_system" :: name_list in
+    (* TODO:Isfarul nothing here: Cdata *)
   compile_phrase (Cmm_helpers.frame_table all_names);
   if !Clflags.output_complete_object then
     force_linking_of_startup ~ppf_dump;
   Emit.end_assembly ()
+(* TODO:Isfarul This function ends here *)
 
+
+(* TODO:Isfarul This function starts here *)
 let make_shared_startup_file ~ppf_dump units =
   let compile_phrase p = Asmgen.compile_phrase ~ppf_dump p in
   Location.input_name := "caml_startup";
@@ -264,7 +278,9 @@ let make_shared_startup_file ~ppf_dump units =
   Emit.begin_assembly ();
   List.iter compile_phrase
     (Cmm_helpers.generic_functions true (List.map fst units));
+    (* TODO:Isfarul nothing here: Cdata *)
   compile_phrase (Cmm_helpers.plugin_header units);
+    (* TODO:Isfarul nothing here: Cdata *)
   compile_phrase
     (Cmm_helpers.global_table
        (List.map (fun (ui,_) -> ui.ui_symbol) units));
@@ -273,6 +289,7 @@ let make_shared_startup_file ~ppf_dump units =
   (* this is to force a reference to all units, otherwise the linker
      might drop some of them (in case of libraries) *)
   Emit.end_assembly ()
+(* TODO:Isfarul This function ends here *)
 
 let call_linker_shared file_list output_name =
   let exitcode = Ccomp.call_linker Ccomp.Dll output_name file_list "" in

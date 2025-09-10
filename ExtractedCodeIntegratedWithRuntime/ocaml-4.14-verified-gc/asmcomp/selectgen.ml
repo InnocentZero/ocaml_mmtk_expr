@@ -1191,6 +1191,8 @@ method emit_fundecl ~future_funcnames f =
   { fun_name = f.Cmm.fun_name;
     fun_args = loc_arg;
     fun_body = body_with_prologue;
+    (* TODO:Isfarul the codegen_options are copied as is from the
+    Cmm options *)
     fun_codegen_options = f.Cmm.fun_codegen_options;
     fun_dbg  = f.Cmm.fun_dbg;
     fun_poll = f.Cmm.fun_poll;

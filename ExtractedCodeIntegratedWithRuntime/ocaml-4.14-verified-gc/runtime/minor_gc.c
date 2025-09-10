@@ -351,6 +351,7 @@ void caml_oldify_mopup (void)
 /* Make sure the minor heap is empty by performing a minor collection
    if needed.
 */
+// TODO: Isfarul this is done in case of a minor colleciton, but what and how and why
 void caml_empty_minor_heap (void)
 {
   value **r;
@@ -376,7 +377,9 @@ void caml_empty_minor_heap (void)
     CAML_EV_BEGIN(EV_MINOR_COPY);
     caml_oldify_mopup ();
     CAML_EV_END(EV_MINOR_COPY);
+
     /* Update the ephemerons */
+    // TODO: Isfarul doesn't concern me
     for (re = Caml_state->ephe_ref_table->base;
          re < Caml_state->ephe_ref_table->ptr; re++){
       if(re->offset < Wosize_val(re->ephe)){
@@ -395,6 +398,8 @@ void caml_empty_minor_heap (void)
         }
       }
     }
+
+
     /* Update the OCaml finalise_last values */
     CAML_EV_BEGIN(EV_MINOR_UPDATE_WEAK);
     caml_final_update_minor_roots();
@@ -458,6 +463,8 @@ extern uintnat caml_instr_alloc_jump;
    Leave enough room in the minor heap to allocate at least one object.
    Guaranteed not to call any OCaml callback.
 */
+// TODO:Isfarul Check where this is being called as this is the function
+// that calls gc slice collection on the major heap
 void caml_gc_dispatch (void)
 {
   CAML_EVENTLOG_DO({

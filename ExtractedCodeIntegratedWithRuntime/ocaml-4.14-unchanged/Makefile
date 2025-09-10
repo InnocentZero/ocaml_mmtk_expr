@@ -642,6 +642,13 @@ partialclean::
 
 ocamlopt$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma \
           $(OPTSTART)
+	cp asmcomp/amd64/emit.mlp.bak asmcomp/amd64/emit.mlp
+	$(CAMLC) $(LINKFLAGS) -o $@ $^
+
+ocamlopt.vergc$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma \
+          $(OPTSTART)
+	cp asmcomp/amd64/emit.mlp.bak asmcomp/amd64/emit.mlp
+	patch asmcomp/amd64/emit.mlp < asmcomp/amd64/emit.vergc.diff
 	$(CAMLC) $(LINKFLAGS) -o $@ $^
 
 partialclean::
@@ -1102,7 +1109,7 @@ toplevel/native/topeval.cmx: otherlibs/dynlink/dynlink.cmxa
 make_opcodes := tools/make_opcodes$(EXE)
 
 bytecomp/opcodes.ml: runtime/caml/instruct.h $(make_opcodes)
-	$(NEW_OCAMLRUN) $(make_opcodes) -opcodes < $< > $@
+	$(OCAMLRUN) $(make_opcodes) -opcodes < $< > $@
 
 bytecomp/opcodes.mli: bytecomp/opcodes.ml
 	$(CAMLC) -i $< > $@

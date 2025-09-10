@@ -594,8 +594,6 @@ let emit_instr env fallthrough i =
       end
   | Lop(Ialloc { bytes = n; dbginfo }) ->
       assert (n <= (Config.max_young_wosize + 1) * Arch.size_addr);
-	(* TODO:Isfarul this is where you have to change the option *)
-	(* TODO:Isfarul find out where this is configured *)
       if env.f.fun_fast then begin
         I.sub (int n) r15;
         I.cmp (domain_field Domainstate.Domain_young_limit) r15;
@@ -613,18 +611,16 @@ let emit_instr env fallthrough i =
             gc_frame_lbl = lbl_frame; } :: env.call_gc_sites
       end else begin
         begin match n with
-	(* TODO:Isfarul Find out where these options are *)
         | 16 -> emit_call "caml_alloc1"
         | 24 -> emit_call "caml_alloc2"
         | 32 -> emit_call "caml_alloc3"
         | _  ->
-            I.mov (int n) (Reg64 RDI);
+            I.sub (int n) r15;
             emit_call "caml_allocN"
         end;
         let label = record_frame_label env i.live (Dbg_alloc dbginfo) in
-        def_label label
-        (* verified allocator already has the result in rax *)
-        (*I.lea (mem64 NONE 8 R15) (res i 0)*)
+        def_label label;
+        I.lea (mem64 NONE 8 R15) (res i 0)
       end
   | Lop(Ipoll { return_label }) ->
       I.cmp (domain_field Domainstate.Domain_young_limit) r15;

@@ -96,6 +96,7 @@ void verified_gc() {
                  get_heap_range().rightmost_value);
 }
 
+// TODO: Isfarul this is the function that I need to use
 void *verified_allocate(mlsize_t wsize) {
   /* printf("Allocation request for %lld\n", wsize); */
   uint8_t *mem = alloc(wsize);
