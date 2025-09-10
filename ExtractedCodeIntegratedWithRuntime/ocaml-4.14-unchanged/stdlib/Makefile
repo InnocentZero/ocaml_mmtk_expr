@@ -27,7 +27,7 @@ COMPFLAGS=-strict-sequence -absname -w +a-4-9-41-42-44-45-48-70 \
 ifeq "$(FLAMBDA)" "true"
 OPTCOMPFLAGS += -O3
 endif
-OPTCOMPILER=$(ROOTDIR)/ocamlopt
+OPTCOMPILER=$(ROOTDIR)/ocamlopt.vergc
 CAMLOPT=$(OCAMLRUN) $(OPTCOMPILER)
 CAMLDEP=$(BOOT_OCAMLC) -depend
 DEPFLAGS=-slash

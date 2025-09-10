@@ -14,8 +14,8 @@ and then running the benchmarks.
 - Build `runtime/libasmrun.a` in the verified gc directory.
 - Copy it over to `runtime/` in the unchanged directory. Also copy it over to
   any of the folders where you finally do the build.
-- Call `make ocamlopt.vergc` in the unchanged directory. Also copy it over to
-  any of the folders where you finally do the build.
+- Call `make ocamlc ocamlopt.vergc` in the unchanged directory. Also copy it
+  over to any of the folders where you finally do the build for testcases.
 - Call `make all std_exit.cmx stdlib.cma ctdlib.cmxa` in `stdlib/` directory in
   the unchanged directory.
 - Call `make install installopt installopt-default` in `stdlib/` directory in
