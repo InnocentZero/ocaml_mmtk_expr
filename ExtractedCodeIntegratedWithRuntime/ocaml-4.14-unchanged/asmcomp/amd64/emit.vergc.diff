@@ -1,6 +1,6 @@
---- emit.mlp.bak	2025-09-05 15:17:05.613827872 +0530
-+++ emit.mlp	2025-09-05 17:51:50.707847009 +0530
-@@ -594,34 +594,11 @@
+--- emit.mlp.bak	2025-09-10 17:27:01.917798470 +0530
++++ emit.mlp	2025-09-18 19:31:05.439978809 +0530
+@@ -594,34 +594,64 @@
        end
    | Lop(Ialloc { bytes = n; dbginfo }) ->
        assert (n <= (Config.max_young_wosize + 1) * Arch.size_addr);
@@ -28,13 +28,68 @@
 -            I.sub (int n) r15;
 -            emit_call "caml_allocN"
 -        end;
-+            I.mov (int n) (Reg64 RDI);
-+            emit_call "caml_allocN";
-         let label = record_frame_label env i.live (Dbg_alloc dbginfo) in
-         def_label label;
+-        let label = record_frame_label env i.live (Dbg_alloc dbginfo) in
+-        def_label label;
 -        I.lea (mem64 NONE 8 R15) (res i 0)
 -      end
-+        I.lea (mem64 NONE 8 RAX) (res i 0)
++
++	(* Save all registers *)
++			I.push (Reg64 RBP);
++			I.push (Reg64 R11);
++			I.push (Reg64 R10);
++			I.push (Reg64 R13);
++			I.push (Reg64 R12);
++			I.push (Reg64 R9);
++			I.push (Reg64 R8);
++			I.push (Reg64 RCX);
++			I.push (Reg64 RDX);
++			I.push (Reg64 RSI);
++			I.push (Reg64 RDI);
++			I.push (Reg64 RBX);
++			I.push (Reg64 RAX);
++
++	(* Save all FP regs *)
++			I.sub (int (16 * 8)) (Reg64 RSP);
++			for i = 0 to 15 do
++				I.movsd (Regf (XMM i)) (mem64 NONE (i*8) RSP);
++			done
++			;
++
++	(* Move argument to RDI *)
++            I.mov (int n) (Reg64 RDI);
++
++            emit_call "caml_allocN";
++	        let label = record_frame_label env i.live (Dbg_alloc dbginfo) in
++	        def_label label;
++
++	(* Move result to R15 as that's unused for us now *)
++	        I.mov rax (Reg64 R15);
++
++	(* Restore all FP regs *)
++			for i = 0 to 15 do
++				I.movsd (mem64 NONE (i*8) RSP) (Regf (XMM i));
++			done
++			;
++			I.add (int (16 * 8)) (Reg64 RSP);
++
++	(* Restore all regular regs *)
++			I.pop (Reg64 RAX);
++			I.pop (Reg64 RBX);
++			I.pop (Reg64 RDI);
++			I.pop (Reg64 RSI);
++			I.pop (Reg64 RDX);
++			I.pop (Reg64 RCX);
++			I.pop (Reg64 R8);
++			I.pop (Reg64 R9);
++			I.pop (Reg64 R12);
++			I.pop (Reg64 R13);
++			I.pop (Reg64 R10);
++			I.pop (Reg64 R11);
++			I.pop (Reg64 RBP);
++
++	(* Move result from R15 to wherever it was required *)
++	        I.mov (Reg64 R15) (res i 0);
++
    | Lop(Ipoll { return_label }) ->
        I.cmp (domain_field Domainstate.Domain_young_limit) r15;
        let gc_call_label = new_label () in
