@@ -1,6 +1,6 @@
 --- emit.mlp.bak	2025-09-10 17:27:01.917798470 +0530
-+++ emit.mlp	2025-09-18 19:31:05.439978809 +0530
-@@ -594,34 +594,64 @@
++++ emit.mlp	2025-09-18 19:57:09.290529225 +0530
+@@ -594,34 +594,65 @@
        end
    | Lop(Ialloc { bytes = n; dbginfo }) ->
        assert (n <= (Config.max_young_wosize + 1) * Arch.size_addr);
@@ -88,7 +88,8 @@
 +			I.pop (Reg64 RBP);
 +
 +	(* Move result from R15 to wherever it was required *)
-+	        I.mov (Reg64 R15) (res i 0);
++	        (* I.mov (Reg64 R15) (res i 0); *)
++        	I.lea (mem64 NONE 8 R15) (res i 0)
 +
    | Lop(Ipoll { return_label }) ->
        I.cmp (domain_field Domainstate.Domain_young_limit) r15;
