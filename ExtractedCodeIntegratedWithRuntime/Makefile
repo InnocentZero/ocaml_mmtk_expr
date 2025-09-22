@@ -16,11 +16,11 @@ bdwgc:
 	make -C $(BDWGC)/runtime -j ocamlrun ocamlrund
 
 verified-gc-opt:
+	cd $(UNCHANGED); ./configure --prefix=`pwd`/BUILD --disable-naked-pointers
 	cd $(VERIFIED)/runtime; make -j libasmrun.a
 	mkdir -p vergc_opt
 	cp $(VERIFIED)/runtime/libasmrun.a vergc_opt/
 	cp $(VERIFIED)/runtime/libasmrun.a $(UNCHANGED)/runtime/
-	cd $(UNCHANGED); ./configure --prefix=`pwd`/BUILD --disable-naked-pointers
 	cd $(UNCHANGED); make -j ocamlc ocamlopt.vergc
 	cp $(UNCHANGED)/ocamlopt.vergc vergc_opt/
 	cd $(UNCHANGED)/stdlib; make -j all std_exit.cmx stdlib.cma stdlib.cmxa
