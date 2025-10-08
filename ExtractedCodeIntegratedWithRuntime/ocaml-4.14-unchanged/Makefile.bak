@@ -38,7 +38,7 @@ endif
 include stdlib/StdlibModules
 
 CAMLC=$(BOOT_OCAMLC) -g -nostdlib -I boot -use-prims runtime/primitives
-CAMLOPT=$(OCAMLRUN) ./ocamlopt.vergc$(EXE) -g -nostdlib -I stdlib -I otherlibs/dynlink
+CAMLOPT=$(OCAMLRUN) ./ocamlopt$(EXE) -g -nostdlib -I stdlib -I otherlibs/dynlink
 ARCHES=amd64 i386 arm arm64 power s390x riscv
 INCLUDES=-I utils -I parsing -I typing -I bytecomp -I file_formats \
         -I lambda -I middle_end -I middle_end/closure \
@@ -130,7 +130,7 @@ partialclean::
 .PHONY: beforedepend
 beforedepend:: utils/config.ml utils/domainstate.ml utils/domainstate.mli
 
-programs := expunge ocaml ocamlc ocamlc.opt ocamlnat ocamlopt.opt ocamlopt.vergc
+programs := expunge ocaml ocamlc ocamlc.opt ocamlnat ocamlopt ocamlopt.opt
 
 $(foreach program, $(programs), $(eval $(call PROGRAM_SYNONYM,$(program))))
 
@@ -232,13 +232,13 @@ promote: promote-common
 # Compile the native-code compiler
 .PHONY: opt-core
 opt-core: runtimeopt
-	$(MAKE) ocamlopt.vergc
+	$(MAKE) ocamlopt
 	$(MAKE) libraryopt
 
 .PHONY: opt
 opt: checknative
 	$(MAKE) runtimeopt
-	$(MAKE) ocamlopt.vergc
+	$(MAKE) ocamlopt
 	$(MAKE) libraryopt
 	$(MAKE) otherlibrariesopt ocamltoolsopt
 
@@ -351,7 +351,7 @@ flexlink:
 	@false
 
 ifeq "$(wildcard ocamlopt.opt$(EXE))" ""
-  FLEXLINK_OCAMLOPT=../runtime/ocamlrun$(EXE) ../ocamlopt.vergc$(EXE)
+  FLEXLINK_OCAMLOPT=../runtime/ocamlrun$(EXE) ../ocamlopt$(EXE)
 else
   FLEXLINK_OCAMLOPT=../ocamlopt.opt$(EXE)
 endif
@@ -471,7 +471,7 @@ endif # ifeq "$(BOOTSTRAPPING_FLEXDLL)" "true"
 	$(INSTALL_DATA) Makefile.config "$(INSTALL_LIBDIR)"
 	$(INSTALL_DATA) $(DOC_FILES) "$(INSTALL_DOCDIR)"
 ifeq "$(INSTALL_BYTECODE_PROGRAMS)" "true"
-	if test -f ocamlopt.vergc$(EXE); then $(MAKE) installopt; else \
+	if test -f ocamlopt$(EXE); then $(MAKE) installopt; else \
 	   cd "$(INSTALL_BINDIR)"; \
 	   $(LN) ocamlc.byte$(EXE) ocamlc$(EXE); \
 	   $(LN) ocamllex.byte$(EXE) ocamllex$(EXE); \
@@ -479,7 +479,7 @@ ifeq "$(INSTALL_BYTECODE_PROGRAMS)" "true"
 	      $(LN) flexlink.byte$(EXE) flexlink$(EXE)) || true; \
 	fi
 else
-	if test -f ocamlopt.vergc$(EXE); then $(MAKE) installopt; fi
+	if test -f ocamlopt$(EXE); then $(MAKE) installopt; fi
 endif
 
 # Installation of the native-code compiler
@@ -487,7 +487,7 @@ endif
 installopt:
 	$(MAKE) -C runtime installopt
 ifeq "$(INSTALL_BYTECODE_PROGRAMS)" "true"
-	$(INSTALL_PROG) ocamlopt.vergc$(EXE) "$(INSTALL_BINDIR)/ocamlopt.byte$(EXE)"
+	$(INSTALL_PROG) ocamlopt$(EXE) "$(INSTALL_BINDIR)/ocamlopt.byte$(EXE)"
 endif
 	$(MAKE) -C stdlib installopt
 	$(INSTALL_DATA) \
@@ -558,7 +558,7 @@ installoptopt:
 	$(INSTALL_PROG) lex/ocamllex.opt$(EXE) "$(INSTALL_BINDIR)"
 	cd "$(INSTALL_BINDIR)"; \
 	   $(LN) ocamlc.opt$(EXE) ocamlc$(EXE); \
-	   $(LN) ocamlopt.opt$(EXE) ocamlopt.vergc$(EXE); \
+	   $(LN) ocamlopt.opt$(EXE) ocamlopt$(EXE); \
 	   $(LN) ocamllex.opt$(EXE) ocamllex$(EXE)
 ifeq "$(BOOTSTRAPPING_FLEXDLL)" "true"
 	$(INSTALL_PROG) flexlink.opt$(EXE) "$(INSTALL_BINDIR)"
@@ -652,7 +652,7 @@ ocamlopt.vergc$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma
 	$(CAMLC) $(LINKFLAGS) -o $@ $^
 
 partialclean::
-	rm -f ocamlopt.vergc$(EXE)
+	rm -f ocamlopt$(EXE)
 
 # The toplevel
 

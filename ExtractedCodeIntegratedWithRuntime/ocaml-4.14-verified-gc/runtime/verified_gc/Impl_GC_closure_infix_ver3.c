@@ -268,6 +268,7 @@ void Impl_GC_closure_infix_ver3_sweep1_with_free_list1(
     uint64_t f_index_val = *f_index;
     uint64_t h_index_val = Spec_GC_infix_closure_ver3_hd_address(f_index_val);
     uint64_t wz = Impl_GC_closure_infix_ver3_wosize_of_block(h_index_val, g);
+    // TODO: Isfarul assert that header size is not 0
     uint64_t h_index_new = h_index_val + (wz + 1ULL) * 8ULL;
     uint64_t f_index_new = h_index_new + 8ULL;
     Impl_GC_closure_infix_ver3_sweep_body_helper_with_free_list1(g, f_index,

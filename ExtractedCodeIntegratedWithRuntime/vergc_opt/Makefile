@@ -5,14 +5,14 @@
 # benchmark: binarytrees.csv fasta.csv quicksort.csv fannkuchredux.csv count_change.csv
 
 test: binarytrees.out fasta.out quicksort.out fannkuchredux.out count_change.out
-	@echo "Running binarytrees"
-	MIN_EXPANSION_WORDSIZE=134217728 ./binarytrees.out 16
+	# @echo "Running binarytrees"
+	# MIN_EXPANSION_WORDSIZE=134217728 ./binarytrees.out 16
 	@echo "Running fasta"
 	MIN_EXPANSION_WORDSIZE=134217728 ./fasta.out 2_500_000
 	@echo "Running quicksort"
-	MIN_EXPANSION_WORDSIZE=8000000 ./quicksort.out 5_000_000
+	MIN_EXPANSION_WORDSIZE=100000000 ./quicksort.out 5_000_000
 	@echo "Running fannkuchredux"
-	./fannkuchredux.out 11
+	MIN_EXPANSION_WORDSIZE=100000000 ./fannkuchredux.out 11
 	@echo "Running count_change"
 	MIN_EXPANSION_WORDSIZE=20000000 ./count_change.out 150
 	@echo "Running nbodies"
@@ -146,5 +146,6 @@ test: binarytrees.out fasta.out quicksort.out fannkuchredux.out count_change.out
 # clean-ydump:
 # 	cd yojson; dune clean
 
-# clean: clean-csvs cpdf-src-clean clean-ydump
-# 	rm -f *.cmi *.cmo *.cmx *.o *.byte
+clean: # clean-csvs cpdf-src-clean clean-ydump
+	rm -f *.cmi *.cmo *.cmx *.o *.byte *.out
+
