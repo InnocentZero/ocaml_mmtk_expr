@@ -541,7 +541,7 @@ ifeq "$(INSTALL_BYTECODE_PROGRAMS)" "true"
 	if test -f ocamlopt.opt$(EXE); then $(MAKE) installoptopt; else \
 	   cd "$(INSTALL_BINDIR)"; \
 	   $(LN) ocamlc.byte$(EXE) ocamlc$(EXE); \
-	   $(LN) ocamlopt.byte$(EXE) ocamlopt$(EXE); \
+	   $(LN) ocamlopt.byte$(EXE) ocamlopt.vergc$(EXE); \
 	   $(LN) ocamllex.byte$(EXE) ocamllex$(EXE); \
 	   (test -f flexlink.byte$(EXE) && \
 	     $(LN) flexlink.byte$(EXE) flexlink$(EXE)) || true; \
@@ -640,10 +640,10 @@ partialclean::
 
 # The native-code compiler
 
-ocamlopt$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma \
-          $(OPTSTART)
-	cp asmcomp/amd64/emit.mlp.bak asmcomp/amd64/emit.mlp
-	$(CAMLC) $(LINKFLAGS) -o $@ $^
+# ocamlopt$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma \
+#           $(OPTSTART)
+# 	cp asmcomp/amd64/emit.mlp.bak asmcomp/amd64/emit.mlp
+# 	$(CAMLC) $(LINKFLAGS) -o $@ $^
 
 ocamlopt.vergc$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma \
           $(OPTSTART)
