@@ -32,6 +32,7 @@
 #define Setup_for_gc
 #define Restore_after_gc
 
+// TODO: This is called for allocation and 
 CAMLexport value caml_alloc (mlsize_t wosize, tag_t tag)
 {
   value result;

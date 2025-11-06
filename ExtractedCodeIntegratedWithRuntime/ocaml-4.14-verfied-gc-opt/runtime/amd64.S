@@ -366,7 +366,7 @@ LBL(caml_call_gc):
         movsd   %xmm15, 15*8(%rsp)
     /* Call the garbage collector */
         PREPARE_FOR_C_CALL
-        call    GCALL(caml_garbage_collection)
+        call    GCALL(caml_trigger_verified_gc)
         CLEANUP_AFTER_C_CALL
     /* Restore young_ptr */
         movq    Caml_state(young_ptr), %r15
@@ -410,37 +410,48 @@ LBL(caml_call_gc):
 CFI_ENDPROC
 ENDFUNCTION(G(caml_call_gc))
 
+/* TODO:Isfarul change this caml_alloc1 */
 FUNCTION(G(caml_alloc1))
 CFI_STARTPROC
-        subq    $16, %r15
-        cmpq    Caml_state(young_limit), %r15
-        jb      LBL(caml_call_gc)
+        mov     $16, %rdi
+        call    GCALL(verified_allocate)
+        /* subq    $16, %r15 */
+        /* cmpq    Caml_state(young_limit), %r15 */
+        /* jb      LBL(caml_call_gc) */
         ret
 CFI_ENDPROC
 ENDFUNCTION(G(caml_alloc1))
 
+/* TODO:Isfarul change this caml_alloc2 */
 FUNCTION(G(caml_alloc2))
 CFI_STARTPROC
-        subq    $24, %r15
-        cmpq    Caml_state(young_limit), %r15
-        jb      LBL(caml_call_gc)
+        mov     $24, %rdi
+        call    GCALL(verified_allocate)
+        /* subq    $24, %r15 */
+        /* cmpq    Caml_state(young_limit), %r15 */
+        /* jb      LBL(caml_call_gc) */
         ret
 CFI_ENDPROC
 ENDFUNCTION(G(caml_alloc2))
 
+/* TODO:Isfarul change this caml_alloc3 */
 FUNCTION(G(caml_alloc3))
 CFI_STARTPROC
-        subq    $32, %r15
-        cmpq    Caml_state(young_limit), %r15
-        jb      LBL(caml_call_gc)
+        mov     $32, %rdi
+        call    GCALL(verified_allocate)
+        /* subq    $32, %r15 */
+        /* cmpq    Caml_state(young_limit), %r15 */
+        /* jb      LBL(caml_call_gc) */
         ret
 CFI_ENDPROC
 ENDFUNCTION(G(caml_alloc3))
 
+/* TODO:Isfarul change this caml_allocN */
 FUNCTION(G(caml_allocN))
 CFI_STARTPROC
-        cmpq    Caml_state(young_limit), %r15
-        jb      LBL(caml_call_gc)
+        call    GCALL(verified_allocate)
+        /* cmpq    Caml_state(young_limit), %r15 */
+        /* jb      LBL(caml_call_gc) */
         ret
 CFI_ENDPROC
 ENDFUNCTION(G(caml_allocN))
@@ -471,11 +482,13 @@ ENDFUNCTION(G(caml_c_call))
 
 /* Start the OCaml program */
 
+// TODO:Isfarul This is the goldmine, here's where things are being set
 FUNCTION(G(caml_start_program))
        CFI_STARTPROC
     /* Save callee-save registers */
         PUSH_CALLEE_SAVE_REGS
     /* Load Caml_state into r14 (was passed as an argument from C) */
+        // TODO:Isfarul %rdi in case of linux, has the Caml_state pointer
         movq    C_ARG_1, %r14
     /* Initial entry point is G(caml_program) */
         LEA_VAR(caml_program, %r12)

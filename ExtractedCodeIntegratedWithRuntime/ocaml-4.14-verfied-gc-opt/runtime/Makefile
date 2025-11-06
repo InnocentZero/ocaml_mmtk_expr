@@ -122,7 +122,7 @@ endif
 
 OC_NATIVE_CPPFLAGS += -DSYS_$(SYSTEM)
 
-OC_DEBUG_CPPFLAGS=-DDEBUG
+OC_DEBUG_CPPFLAGS=-DDEBUG -O0
 OC_INSTR_CPPFLAGS=-DCAML_INSTR
 
 ifeq "$(TOOLCHAIN)" "msvc"
@@ -182,6 +182,7 @@ clean:
 	rm -f primitives primitives.new prims.c $(BUILT_HEADERS)
 	rm -f domain_state*.inc
 	rm -rf $(DEPDIR)
+	$(MAKE) -C verified_gc clean
 
 .PHONY: distclean
 distclean: clean
@@ -268,7 +269,14 @@ build_config.h: $(ROOTDIR)/Makefile.config sak$(EXE)
 
 # Libraries and programs
 
-ocamlrun$(EXE): prims.$(O) libcamlrun.$(A)
+libvergc.a:
+	$(MAKE) -C verified_gc
+	cp verified_gc/libvergc.a .
+
+librust_allocator.a: libvergc.a
+	cp verified_gc/librust_allocator.a .
+
+ocamlrun$(EXE): prims.$(O) libcamlrun.$(A) libvergc.a librust_allocator.a
 	$(MKEXE) -o $@ $^ $(LIBS)
 
 ocamlruns$(EXE): prims.$(O) libcamlrun_non_shared.$(A)
@@ -280,13 +288,13 @@ libcamlrun.$(A): $(libcamlrun_OBJECTS)
 libcamlrun_non_shared.$(A): $(libcamlrun_non_shared_OBJECTS)
 	$(call MKLIB,$@, $^)
 
-ocamlrund$(EXE): prims.$(O) libcamlrund.$(A)
+ocamlrund$(EXE): prims.$(O) libcamlrund.$(A) libvergc.a librust_allocator.a
 	$(MKEXE) $(MKEXEDEBUGFLAG) -o $@ $^ $(LIBS)
 
 libcamlrund.$(A): $(libcamlrund_OBJECTS)
 	$(call MKLIB,$@, $^)
 
-ocamlruni$(EXE): prims.$(O) libcamlruni.$(A)
+ocamlruni$(EXE): prims.$(O) libcamlruni.$(A) libvergc.a librust_allocator.a
 	$(MKEXE) -o $@ $^ $(INSTRUMENTED_RUNTIME_LIBS) $(LIBS)
 
 libcamlruni.$(A): $(libcamlruni_OBJECTS)
@@ -298,11 +306,15 @@ libcamlrun_pic.$(A): $(libcamlrunpic_OBJECTS)
 libcamlrun_shared.$(SO): $(libcamlrunpic_OBJECTS)
 	$(MKDLL) -o $@ $^ $(BYTECCLIBS)
 
-libasmrun.$(A): $(libasmrun_OBJECTS)
-	$(call MKLIB,$@, $^)
+libasmrun.$(A): $(libasmrun_OBJECTS) libvergc.a librust_allocator.a
+	mkdir -p temp_objs
+	cd temp_objs && ar x ../libvergc.a
+	cd temp_objs && ar x ../librust_allocator.a
+	$(call MKLIB,$@, $(libasmrun_OBJECTS) temp_objs/*.o)
+	rm -rf temp_objs
 
 libasmrund.$(A): $(libasmrund_OBJECTS)
-	$(call MKLIB,$@, $^)
+	$(call MKLIB,$@, $^ $(LIBS)
 
 libasmruni.$(A): $(libasmruni_OBJECTS)
 	$(call MKLIB,$@, $^)
@@ -351,7 +363,7 @@ ifneq "$(1)" "%"
 # don't use -MG and instead include $(BUILT_HEADERS) in the order only
 # dependencies to ensure that they exist before dependencies are computed.
 $(DEPDIR)/$(1).$(D): %.c | $(DEPDIR) $(BUILT_HEADERS)
-	$$(DEP_CC) $$(OC_CPPFLAGS) $$(CPPFLAGS) $$< -MT \
+	$$(DEP_CC) $$(OC_CFLAGS) $$(CFLAGS) $$(OC_CPPFLAGS) $$(CPPFLAGS) $$< -MT \
 	  '$$*$(subst %,,$(1)).$(O)' -MF $$@
 endif # ifneq "$(1)" "%"
 $(1).$(O): $(2).c

@@ -213,6 +213,8 @@ enum caml_alloc_small_flags {
   CAML_FROM_C = 0,     CAML_FROM_CAML = 2
 };
 
+void* verified_allocate(mlsize_t wosize);
+
 extern void caml_alloc_small_dispatch (intnat wosize, int flags,
                                        int nallocs, unsigned char* alloc_lens);
 // Do not call asynchronous callbacks from allocation functions
@@ -221,18 +223,16 @@ extern void caml_alloc_small_dispatch (intnat wosize, int flags,
   CAMLassert ((wosize) >= 1);                                          \
   CAMLassert ((tag_t) (tag) < 256);                                    \
   CAMLassert ((wosize) <= Max_young_wosize);                           \
-  Caml_state_field(young_ptr) -= Whsize_wosize (wosize);               \
-  if (Caml_state_field(young_ptr) < Caml_state_field(young_limit)) {   \
-    Setup_for_gc;                                                      \
-    caml_alloc_small_dispatch((wosize), (track) | Alloc_small_origin,  \
-                              1, NULL);                                \
-    Restore_after_gc;                                                  \
-  }                                                                    \
-  Hd_hp (Caml_state_field(young_ptr)) =                                \
+  Setup_for_gc;                                                        \
+  Caml_state_field(temp) = (value)verified_allocate((wosize));         \
+  Restore_after_gc;                                                    \
+  (result) = Caml_state_field(temp);                                   \
+  Hd_hp (result) =                                                     \
     Make_header_with_profinfo ((wosize), (tag), 0, profinfo);          \
-  (result) = Val_hp (Caml_state_field(young_ptr));                     \
+  (result) = Val_hp (result);                                          \
   DEBUG_clear ((result), (wosize));                                    \
 }while(0)
+
 
 #define Alloc_small_with_profinfo(result, wosize, tag, profinfo) \
   Alloc_small_aux(result, wosize, tag, profinfo, CAML_DO_TRACK)
