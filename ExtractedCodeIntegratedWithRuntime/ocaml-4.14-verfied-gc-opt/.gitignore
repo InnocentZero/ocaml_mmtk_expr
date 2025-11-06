@@ -54,6 +54,7 @@ _build
 /expunge
 /ocaml
 /ocamlopt
+/ocamlopt.vergc
 /ocamlopt.opt
 /ocamlnat
 /_opam
@@ -68,7 +69,6 @@ _build
 /asmcomp/scheduling.ml
 /asmcomp/CSE.ml
 
-/boot/ocamlrun
 /boot/ocamlruns
 /boot/camlheader
 /boot/ocamlc.opt
