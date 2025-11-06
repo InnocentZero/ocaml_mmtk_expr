@@ -69,10 +69,8 @@ _build
 /asmcomp/scheduling.ml
 /asmcomp/CSE.ml
 
-/boot/ocamlruns
-/boot/camlheader
-/boot/ocamlc.opt
-/boot/flexlink.byte
+#ignore nothing in boot/
+!/boot
 
 /bytecomp/opcodes.ml
 /bytecomp/opcodes.mli
