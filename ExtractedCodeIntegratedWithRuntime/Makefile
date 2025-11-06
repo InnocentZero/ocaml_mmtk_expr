@@ -1,6 +1,6 @@
 UNCHANGED:=ocaml-4.14-unchanged
 VERIFIED:=ocaml-4.14-verified-gc
-VERIFIEDOPT:=ocaml-4.14-verified-gc-opt
+VERIFIEDOPT:=ocaml-4.14-verfied-gc-opt
 BDWGC:=ocaml-4.14-bdwgc
 unchanged:
 	PWD=$(shell pwd)
@@ -19,7 +19,14 @@ bdwgc:
 verified-gc-opt:
 	PWD=$(shell pwd)
 	cd $(VERIFIEDOPT); ./configure --prefix=$(PWD)/$(VERIFIEDOPT)/BUILD --disable-naked-pointers
-	make -C $(VERIFIEDOPT) -j || true
+	make -C $(VERIFIEDOPT) ocamlc ocamlopt.vergc
+	make -C $(VERIFIEDOPT)/runtime -j
+	make -C $(VERIFIEDOPT)/runtime -j libasmrun.a sak
+	mkdir -p vergc_opt/
+	cp $(VERIFIEDOPT)/{ocamlopt.vergc,runtime/libasmrun.a} vergc_opt/
+	make -C $(VERIFIEDOPT)/stdlib -j all std_exit.cmx stdlib.cma stdlib.cmxa
+	mkdir -p $(VERIFIEDOPT)/BUILD/lib/ocaml/
+	make -C $(VERIFIEDOPT)/stdlib install installopt installopt-default
 	make -C $(VERIFIEDOPT) install || true
 
 clean-unchanged:
