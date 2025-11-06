@@ -22,6 +22,10 @@ ROOTDIR = .
 OCAMLLEX ?= $(BOOT_OCAMLLEX)
 include Makefile.common
 
+.PHONY: makeruntime
+makeruntime:
+	make -C runtime -j
+
 .PHONY: defaultentry
 ifeq "$(NATIVE_COMPILER)" "true"
 defaultentry: world.opt
@@ -38,7 +42,8 @@ endif
 include stdlib/StdlibModules
 
 CAMLC=$(BOOT_OCAMLC) -g -nostdlib -I boot -use-prims runtime/primitives
-CAMLOPT=$(OCAMLRUN) ./ocamlopt.vergc$(EXE) -g -nostdlib -I stdlib -I otherlibs/dynlink
+# TODO(Isfarul): First change here (runtime/ocamlrun)
+CAMLOPT=$(NEW_OCAMLRUN) ./ocamlopt.vergc$(EXE) -g -nostdlib -I stdlib -I otherlibs/dynlink
 ARCHES=amd64 i386 arm arm64 power s390x riscv
 INCLUDES=-I utils -I parsing -I typing -I bytecomp -I file_formats \
         -I lambda -I middle_end -I middle_end/closure \
@@ -58,7 +63,8 @@ else
 OCAML_NATDYNLINKOPTS = -ccopt "$(NATDYNLINKOPTS)"
 endif
 
-CAMLDEP=$(OCAMLRUN) boot/ocamlc -depend
+# TODO(Isfarul): Second change here (runtime)
+CAMLDEP=$(NEW_OCAMLRUN) boot/ocamlc -depend
 DEPFLAGS=-slash
 DEPINCLUDES=$(INCLUDES)
 
@@ -184,7 +190,7 @@ endif # ifeq "$(BOOTSTRAPPING_FLEXDLL)" "false"
 
 # Recompile the core system using the bootstrap compiler
 .PHONY: coreall
-coreall: runtime
+coreall: runtime makeruntime
 	$(MAKE) ocamlc
 	$(MAKE) ocamllex ocamltools library
 
@@ -195,7 +201,8 @@ core: coldstart
 
 # Check if fixpoint reached
 
-CMPBYT := $(OCAMLRUN) tools/cmpbyt$(EXE)
+# TODO(Isfarul): Change here (runtime/ocamlrun)
+CMPBYT := $(NEW_OCAMLRUN) tools/cmpbyt$(EXE)
 
 .PHONY: compare
 compare:
@@ -664,7 +671,8 @@ ocaml.tmp: $(ocaml_dependencies)
 	$(CAMLC) $(LINKFLAGS) -I toplevel/byte -linkall -o $@ $^
 
 ocaml$(EXE): $(expunge) ocaml.tmp
-	- $(OCAMLRUN) $^ $@ $(PERVASIVES)
+	# TODO(Isfarul): Change here (runtime/ocamlrun)
+	- $(NEW_OCAMLRUN) $^ $@ $(PERVASIVES)
 
 partialclean::
 	rm -f ocaml$(EXE)
@@ -683,7 +691,8 @@ runtop:
 	$(MAKE) ocamlc
 	$(MAKE) otherlibraries
 	$(MAKE) ocaml
-	@$(EXTRAPATH) $(RLWRAP) $(OCAMLRUN) ./ocaml$(EXE) $(OC_TOPFLAGS)
+	# TODO(Isfarul): Change here (runtime/ocamlrun)
+	@$(EXTRAPATH) $(RLWRAP) $(NEW_OCAMLRUN) ./ocaml$(EXE) $(OC_TOPFLAGS)
 
 .PHONY: natruntop
 natruntop:
@@ -764,7 +773,8 @@ cvt_emit := tools/cvt_emit$(EXE)
 
 asmcomp/emit.ml: asmcomp/$(ARCH)/emit.mlp $(cvt_emit)
 	echo \# 1 \"$(ARCH)/emit.mlp\" > $@
-	$(OCAMLRUN) $(cvt_emit) < $< >> $@ \
+	# TODO(Isfarul): Change here (runtime/ocamlrun)
+	$(NEW_OCAMLRUN) $(cvt_emit) < $< >> $@ \
 	|| { rm -f $@; exit 2; }
 
 partialclean::
@@ -1107,7 +1117,9 @@ toplevel/native/topeval.cmx: otherlibs/dynlink/dynlink.cmxa
 make_opcodes := tools/make_opcodes$(EXE)
 
 bytecomp/opcodes.ml: runtime/caml/instruct.h $(make_opcodes)
-	$(OCAMLRUN) $(make_opcodes) -opcodes < $< > $@
+	# TODO(Isfarul): Change here (runtime/ocamlrun)
+	$(MAKE) -C runtime -j ocamlrun$(EXE) ocamlrund$(EXE)
+	$(NEW_OCAMLRUN) $(make_opcodes) -opcodes < $< > $@
 
 bytecomp/opcodes.mli: bytecomp/opcodes.ml
 	$(CAMLC) -i $< > $@
