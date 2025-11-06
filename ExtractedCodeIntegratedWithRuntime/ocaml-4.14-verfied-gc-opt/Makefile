@@ -639,16 +639,14 @@ partialclean::
 	rm -rf ocamlc$(EXE)
 
 # The native-code compiler
-
 # ocamlopt$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma \
 #           $(OPTSTART)
 # 	cp asmcomp/amd64/emit.mlp.bak asmcomp/amd64/emit.mlp
 # 	$(CAMLC) $(LINKFLAGS) -o $@ $^
 
+# Native code compiler with verified GC
 ocamlopt.vergc$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma \
           $(OPTSTART)
-	cp asmcomp/amd64/emit.mlp.bak asmcomp/amd64/emit.mlp
-	patch asmcomp/amd64/emit.mlp < asmcomp/amd64/emit.vergc.diff
 	$(CAMLC) $(LINKFLAGS) -o $@ $^
 
 partialclean::

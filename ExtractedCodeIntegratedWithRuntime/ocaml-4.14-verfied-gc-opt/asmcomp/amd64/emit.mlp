@@ -650,7 +650,6 @@ let emit_instr env fallthrough i =
 			I.pop (Reg64 RBP);
 
 	(* Move result from R15 to wherever it was required *)
-	        (* I.mov (Reg64 R15) (res i 0) *)
         	I.lea (mem64 NONE 8 R15) (res i 0)
 
   | Lop(Ipoll { return_label }) ->
