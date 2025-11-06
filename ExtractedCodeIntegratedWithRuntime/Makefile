@@ -1,5 +1,6 @@
 UNCHANGED:=ocaml-4.14-unchanged
 VERIFIED:=ocaml-4.14-verified-gc
+VERIFIEDOPT:=ocaml-4.14-verified-gc-opt
 BDWGC:=ocaml-4.14-bdwgc
 unchanged:
 	PWD=$(shell pwd)
@@ -16,18 +17,10 @@ bdwgc:
 	make -C $(BDWGC)/runtime -j ocamlrun ocamlrund
 
 verified-gc-opt:
-	cd $(UNCHANGED); ./configure --prefix=`pwd`/BUILD --disable-naked-pointers
-	cd $(VERIFIED)/runtime; make -j libasmrun.a
-	mkdir -p vergc_opt
-	cp $(VERIFIED)/runtime/libasmrun.a vergc_opt/
-	cp $(VERIFIED)/runtime/libasmrun.a $(UNCHANGED)/runtime/
-	cd $(UNCHANGED); make -j ocamlc ocamlopt.vergc
-	cp $(UNCHANGED)/ocamlopt.vergc vergc_opt/
-	cd $(UNCHANGED)/stdlib; make -j all std_exit.cmx stdlib.cma stdlib.cmxa
-	mkdir -p $(UNCHANGED)/BUILD/lib/ocaml/
-	cd $(UNCHANGED)/stdlib; make install installopt installopt-default
-	cd $(UNCHANGED); make -j || true
-	cd $(UNCHANGED); make install || true
+	PWD=$(shell pwd)
+	cd $(VERIFIEDOPT); ./configure --prefix=$(PWD)/$(VERIFIEDOPT)/BUILD --disable-naked-pointers
+	make -C $(VERIFIEDOPT) -j || true
+	make -C $(VERIFIEDOPT) install || true
 
 clean-unchanged:
 	make -C $(UNCHANGED) clean
@@ -39,10 +32,7 @@ clean-verified-gc:
 	make -C $(VERIFIED) clean
 
 clean-verified-gc-opt:
-	make -C $(VERIFIED)/runtime clean
-	make -C $(UNCHANGED) clean
-	rm $(UNCHANGED)/ocamlopt.vergc
-	rm -rf vergc_opt/libasmrun.a vergc_opt/ocamlopt.vergc
+	make -C $(VERIFIEDOPT) clean
 
 all: unchanged verified-gc bdwgc
 
