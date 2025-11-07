@@ -1,2 +1,2 @@
 #!/bin/sh
-exec "/home/innocentzero/Isfaruls_home/projects/ocaml_mmtk/verified_ocaml_gc/ExtractedCodeIntegratedWithRuntime/ocaml-4.14-unchanged/BUILD/bin/ocamlrun" "$0" "$@"
+exec "/home/innocentzero/innocentzeros_coven/projects/ocaml_mmtk/verified_ocaml_gc/ExtractedCodeIntegratedWithRuntime/ocaml-4.14-verfied-gc-opt/BUILD/bin/ocamlrun" "$0" "$@"

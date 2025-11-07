@@ -619,6 +619,8 @@ let emit_instr env fallthrough i =
 
 	(* Move argument to RDI *)
             I.mov (int n) (Reg64 RDI);
+			I.sub (int 8) (Reg64 RDI);
+			I.sar (int 3) (Reg64 RDI);
 
             emit_call "caml_allocN";
 	        let label = record_frame_label env i.live (Dbg_alloc dbginfo) in
