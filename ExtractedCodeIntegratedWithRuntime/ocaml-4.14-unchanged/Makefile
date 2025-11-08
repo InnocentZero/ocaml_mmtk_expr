@@ -647,8 +647,8 @@ partialclean::
 
 ocamlopt.vergc$(EXE): compilerlibs/ocamlcommon.cma compilerlibs/ocamloptcomp.cma \
           $(OPTSTART)
-	cp asmcomp/amd64/emit.mlp.bak asmcomp/amd64/emit.mlp
-	patch asmcomp/amd64/emit.mlp < asmcomp/amd64/emit.vergc.diff
+	#cp asmcomp/amd64/emit.mlp.bak asmcomp/amd64/emit.mlp
+	#patch asmcomp/amd64/emit.mlp < asmcomp/amd64/emit.vergc.diff
 	$(CAMLC) $(LINKFLAGS) -o $@ $^
 
 partialclean::

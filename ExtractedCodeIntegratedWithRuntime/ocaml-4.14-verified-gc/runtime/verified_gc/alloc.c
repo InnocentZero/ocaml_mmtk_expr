@@ -90,18 +90,19 @@ void mark_and_sweep(uint64_t xheap_start, uint64_t heap_end) {
 }
 
 void verified_gc() {
-  caml_gc_message(0x20, "Triggering GC\n");
+  caml_gc_message(0x08,"Triggering GC\n");
   Caml_state->_stat_major_collections++;
-  // TODO: Isfarul 
+  // TODO: Isfarul
   mark_and_sweep(get_heap_range().first_header + 8U,
                  get_heap_range().rightmost_value);
 }
 
 // TODO: Isfarul this is the function that I need to use
 void *verified_allocate(mlsize_t wsize) {
-  /* printf("Allocation request for %lld\n", wsize); */
   uint8_t *mem = alloc(wsize);
   int oom_count = 0;
+
+  assert(wsize != 0);
 
 again:
   if (((uintptr_t)mem - sizeof(uintptr_t)) == 0) {
@@ -115,7 +116,13 @@ again:
     mem = alloc(wsize);
     goto again;
   }
+  //printf("A: %p %lld\n", (void*)mem, wsize);
+  //fflush(stdout);
   return mem - 8U;
+}
+
+void* verified_bhallocate(mlsize_t bhsize) {
+  return verified_allocate(Wosize_bhsize(bhsize));
 }
 
 CAMLprim value caml_trigger_verified_gc(value v) {

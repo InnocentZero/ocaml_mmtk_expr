@@ -48,11 +48,15 @@ let () =
 let long_lived_tree = make max_depth
 
 let rec loop_depths d =
-  for i = 0 to ((max_depth - d) / 2) + 1 - 1 do
+(*   Printf.printf "loop_depths: %i\n%!" d; *)
+  let niter = ((max_depth - d) / 2) + 1 - 1 in
+  for i = 0 to niter do
+(*     Printf.printf "loop_depths(LOOP1): i=%i niter=%i\n%!" i niter; *)
     let d = d + (i * 2) in
     let niter = 1 lsl (max_depth - d + min_depth) in
     let c = ref 0 in
     for i = 1 to niter do
+(*       Printf.printf "loop_depths(LOOP2): i=%i niter=%i\n%!" i niter; *)
       c := !c + check (make d)
     done;
     Printf.printf "%i\t trees of depth %i\t check: %i\n" niter d !c

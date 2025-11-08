@@ -271,6 +271,9 @@ void Impl_GC_closure_infix_ver3_sweep1_with_free_list1(
     // TODO: Isfarul assert that header size is not 0
     uint64_t h_index_new = h_index_val + (wz + 1ULL) * 8ULL;
     uint64_t f_index_new = h_index_new + 8ULL;
+    //printf ("S: %p %lld\n", (void*)f_index_val, wz);
+    //fflush(stdout);
+    assert (wz != 0);
     Impl_GC_closure_infix_ver3_sweep_body_helper_with_free_list1(g, f_index,
                                                                  free_list_ptr);
     f_index[0U] = f_index_new;

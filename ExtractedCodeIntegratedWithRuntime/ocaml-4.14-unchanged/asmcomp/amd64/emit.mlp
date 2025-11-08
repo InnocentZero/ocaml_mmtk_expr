@@ -653,8 +653,12 @@ let emit_instr env fallthrough i =
 	        (* I.mov (Reg64 R15) (res i 0) *)
         	I.lea (mem64 NONE 8 R15) (res i 0)
 
-  | Lop(Ipoll { return_label }) ->
-      I.cmp (domain_field Domainstate.Domain_young_limit) r15;
+  | Lop(Ipoll {return_label}) ->
+      (* I.cmp (domain_field Domainstate.Domain_young_limit) r15; *)
+      I.cmp (int 0) r15;
+      (* XXX KC: fix it properly later. Assumes r15>0 Must use return_label for
+         proper
+         control flow. Otherwise, loops will not iterate. *)
       let gc_call_label = new_label () in
       let lbl_after_poll = match return_label with
                   | None -> new_label()
@@ -674,6 +678,7 @@ let emit_instr env fallthrough i =
       | None -> def_label lbl_after_poll
       | Some _ -> I.jmp (label gc_call_label)
       end
+
   | Lop(Iintop(Icomp cmp)) ->
       I.cmp (arg i 1) (arg i 0);
       I.set (cond cmp) al;
