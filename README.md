@@ -16,7 +16,7 @@ and then running the benchmarks.
   any of the folders where you finally do the build.
 - Call `make ocamlc ocamlopt.vergc` in the unchanged directory. Also copy it
   over to any of the folders where you finally do the build for testcases.
-- Call `make all std_exit.cmx stdlib.cma ctdlib.cmxa` in `stdlib/` directory in
+- Call `make all std_exit.cmx stdlib.cma stdlib.cmxa` in `stdlib/` directory in
   the unchanged directory.
 - Call `make install installopt installopt-default` in `stdlib/` directory in
   the unchanged directory. This might give an error about the path not being
