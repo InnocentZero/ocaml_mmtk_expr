@@ -446,12 +446,36 @@ CFI_STARTPROC
 CFI_ENDPROC
 ENDFUNCTION(G(caml_alloc3))
 
-/* TODO:Isfarul change this caml_allocN */
 FUNCTION(G(caml_allocN))
 CFI_STARTPROC
+    /* Save OCaml stack context so caml_do_local_roots_nat can scan roots.
+       The code generator (emit.vergc.diff) builds this stack layout before
+       calling us:
+         rsp+0:   return address into OCaml compiled code  <- last_return_address
+                  (has a frame descriptor: record_frame_label emits one here)
+         rsp+8:   xmm0..xmm15 save area (16 * 8 = 128 bytes)
+         rsp+136: saved rax  \
+         rsp+144: saved rbx   |
+         rsp+152: saved rdi   |
+         rsp+160: saved rsi   | GP register save array (13 regs, 104 bytes)
+         rsp+168: saved rdx   | layout matches caml_call_gc, so gc_regs
+         rsp+176: saved rcx   | indexing in caml_do_local_roots_nat is correct
+         rsp+184: saved r8    |
+         rsp+192: saved r9    |
+         rsp+200: saved r12   |
+         rsp+208: saved r13   |
+         rsp+216: saved r10   |
+         rsp+224: saved r11   |
+         rsp+232: saved rbp  /
+         rsp+240: OCaml sp before the save sequence  <- bottom_of_stack
+    */
+        movq    (%rsp), %r11
+        movq    %r11, Caml_state(last_return_address)   /* retaddr into OCaml code */
+        leaq    240(%rsp), %r11
+        movq    %r11, Caml_state(bottom_of_stack)        /* OCaml sp before saves  */
+        leaq    136(%rsp), %r11
+        movq    %r11, Caml_state(gc_regs)                /* base of GP save array  */
         call    GCALL(verified_bhallocate)
-        /* cmpq    Caml_state(young_limit), %r15 */
-        /* jb      LBL(caml_call_gc) */
         ret
 CFI_ENDPROC
 ENDFUNCTION(G(caml_allocN))
