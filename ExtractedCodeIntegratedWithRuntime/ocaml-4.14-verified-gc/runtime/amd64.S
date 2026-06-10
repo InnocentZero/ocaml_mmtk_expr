@@ -410,42 +410,6 @@ LBL(caml_call_gc):
 CFI_ENDPROC
 ENDFUNCTION(G(caml_call_gc))
 
-/* TODO:Isfarul change this caml_alloc1 */
-FUNCTION(G(caml_alloc1))
-CFI_STARTPROC
-        mov     $16, %rdi
-        call    GCALL(verified_bhallocate)
-        /* subq    $16, %r15 */
-        /* cmpq    Caml_state(young_limit), %r15 */
-        /* jb      LBL(caml_call_gc) */
-        ret
-CFI_ENDPROC
-ENDFUNCTION(G(caml_alloc1))
-
-/* TODO:Isfarul change this caml_alloc2 */
-FUNCTION(G(caml_alloc2))
-CFI_STARTPROC
-        mov     $24, %rdi
-        call    GCALL(verified_bhallocate)
-        /* subq    $24, %r15 */
-        /* cmpq    Caml_state(young_limit), %r15 */
-        /* jb      LBL(caml_call_gc) */
-        ret
-CFI_ENDPROC
-ENDFUNCTION(G(caml_alloc2))
-
-/* TODO:Isfarul change this caml_alloc3 */
-FUNCTION(G(caml_alloc3))
-CFI_STARTPROC
-        mov     $32, %rdi
-        call    GCALL(verified_bhallocate)
-        /* subq    $32, %r15 */
-        /* cmpq    Caml_state(young_limit), %r15 */
-        /* jb      LBL(caml_call_gc) */
-        ret
-CFI_ENDPROC
-ENDFUNCTION(G(caml_alloc3))
-
 FUNCTION(G(caml_allocN))
 CFI_STARTPROC
     /* Save OCaml stack context so caml_do_local_roots_nat can scan roots.
