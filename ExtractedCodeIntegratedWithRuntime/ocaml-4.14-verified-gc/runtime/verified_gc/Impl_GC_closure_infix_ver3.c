@@ -218,10 +218,6 @@ void Impl_GC_closure_infix_ver3_sweep_body_helper_with_free_list1(
   uint64_t h_index = Spec_GC_infix_closure_ver3_hd_address(f_index_val);
   uint64_t c = Impl_GC_closure_infix_ver3_color_of_block(h_index, g);
   uint64_t wz = Impl_GC_closure_infix_ver3_wosize_of_block(h_index, g);
-  // Handwritten, to handle 0 sized blocks
-  if (wz == 0) {
-    return;
-  }
 
   if (c == Spec_GC_infix_closure_ver3_white ||
       c == Spec_GC_infix_closure_ver3_blue) {
