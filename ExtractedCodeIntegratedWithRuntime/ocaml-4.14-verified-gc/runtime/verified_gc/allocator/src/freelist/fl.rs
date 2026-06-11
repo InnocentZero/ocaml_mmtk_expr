@@ -1,5 +1,4 @@
 use crate::{
-    colors::BLUE,
     utils::get_next,
     value::{Value, VAL_NULL},
     word::Wsize,
@@ -22,7 +21,7 @@ impl FreeList<'_> {
             visited_start_once: false,
         }
     }
-    pub fn new(g: &mut NfGlobals) -> FreeList {
+    pub fn new(g: &mut NfGlobals) -> FreeList<'_> {
         FreeList { globals: g }
     }
 

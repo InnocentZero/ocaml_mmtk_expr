@@ -74,7 +74,7 @@ impl NfAllocator {
         }
     }
 
-    pub fn get_pool_iter(&self) -> PoolIter {
+    pub fn get_pool_iter(&self) -> PoolIter<'_> {
         // at all times pool_head will point to valid pool(the global one with static lifetime or
         // the one gotten through Box::leak)
         PoolIter::new(&self.get_globals().pool_head)
