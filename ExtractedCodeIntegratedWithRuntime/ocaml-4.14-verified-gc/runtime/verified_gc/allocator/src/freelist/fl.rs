@@ -1,5 +1,4 @@
 use crate::{
-    colors::BLUE,
     utils::get_next,
     value::{Value, VAL_NULL},
     word::Wsize,
@@ -22,13 +21,22 @@ impl FreeList<'_> {
             visited_start_once: false,
         }
     }
-    pub fn new(g: &mut NfGlobals) -> FreeList {
+    pub fn new(g: &mut NfGlobals) -> FreeList<'_> {
         FreeList { globals: g }
     }
 
     pub fn find_next(&mut self, wo_sz: Wsize) -> Option<NfIterVal> {
         self.nf_iter()
-            .find(|e| e.get_cur().get_header().get_wosize().get_val() >= wo_sz.get_val())
+            .find(|e| {
+                let wosize = e.get_cur().get_header().get_wosize();
+                // Allow exact fit (wosize == wo_sz): whole block consumed, offset = -1
+                //   overwrites the free header with the new block header — no tombstone.
+                // Allow normal split (wosize >= wo_sz + 2): remaining
+                //   fragment has >= 1 payload word — valid free block.
+                // Disallow near-fit (wosize == wo_sz + 1): would leave a 1-word
+                //   fragment (header only, no payload) — tombstone, violates heap invariant.
+                wosize == wo_sz || wosize >= wo_sz + Wsize::new(2)
+            })
     }
 }
 
