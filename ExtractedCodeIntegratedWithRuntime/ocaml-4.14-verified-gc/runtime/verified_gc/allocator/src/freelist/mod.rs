@@ -95,18 +95,28 @@ mod tests {
                 acc + x.get_cur().get_header().get_wosize()
             });
 
-        //The following allocation will force the empty block case in nf_allocate_block
-        let hp = allocator.nf_allocate(allocatable_memory_left - Wsize::new(1));
+        // Near-fit (wo_sz = allocatable_memory_left - 1) would leave a 1-word fragment
+        // (header only, no payload) — a tombstone. find_next now skips such blocks,
+        // so this must return null.
+        let rejected = allocator.nf_allocate(allocatable_memory_left - Wsize::new(1));
+        assert_eq!(
+            rejected,
+            std::ptr::null_mut(),
+            "near-fit allocation must be rejected to prevent tombstone creation"
+        );
+        // Free list must be unchanged after the rejected allocation.
+        assert_eq!(
+            FreeList::new(allocator.get_globals_mut()).nf_iter().count(),
+            1
+        );
 
+        // Exact-fit (wo_sz = allocatable_memory_left) consumes the whole block (Case A).
+        // The new block header lands at the old free block's header slot — no tombstone.
+        let hp = allocator.nf_allocate(allocatable_memory_left);
+        assert_ne!(hp, std::ptr::null_mut());
         assert_eq!(
             val_hp!(hp).get_header().get_wosize(),
-            allocatable_memory_left - Wsize::new(1)
-        );
-        //Assert the size of empty block that lies 1 word before hp
-        assert_eq!(
-            Value(hp as usize).get_header().get_wosize(), // treat hp as val, it'll treat empty
-            // block as it's header
-            Wsize::new(0)
+            allocatable_memory_left
         );
         allocations.push(Some(hp));
 

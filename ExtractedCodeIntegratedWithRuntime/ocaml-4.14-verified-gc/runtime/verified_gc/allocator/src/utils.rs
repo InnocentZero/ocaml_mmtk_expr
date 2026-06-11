@@ -1,6 +1,6 @@
 use std::{alloc::Layout, env};
 
-use crate::{colors::BLUE, freelist::pool::Pool, header::Header, value::Value, word::Wsize};
+use crate::{colors::BLUE, freelist::pool::Pool, value::Value, word::Wsize};
 
 #[cfg(target_pointer_width = "16")]
 static ALIGN: usize = 2usize;

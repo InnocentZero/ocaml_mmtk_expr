@@ -1,7 +1,4 @@
-use std::{
-    fmt::{self, Debug},
-    ops::Deref,
-};
+use std::fmt::{self, Debug};
 
 use crate::{
     bp_val,
