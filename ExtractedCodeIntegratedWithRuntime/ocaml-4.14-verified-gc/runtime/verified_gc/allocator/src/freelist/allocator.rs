@@ -111,80 +111,58 @@ impl NfAllocator {
             (prev == self.get_globals().nf_head && cur == *get_next(&prev)) || (prev.0 < cur.0),
             "[nf_allocate_block] prev<cur invariant broken"
         );
+        let wosize = cur.get_header().get_wosize();
+        let wo_sz = wosize_whsize(wh_sz);
         assert!(
-            whsize_wosize(cur.get_header().get_wosize()) >= wh_sz,
-            "The invariant(block size should be enough) to be maintained is broken. to_be_allocated block doesnt have enough size to satisfy the request."
+            wosize == wo_sz || wosize >= wh_sz + Wsize::new(1),
+            "Block must be exact-fit (wosize == wo_sz) or splittable (wosize >= wh_sz+1). \
+             Near-fit (wosize == wh_sz) is forbidden: it creates a tombstone."
         );
     }
 
     fn nf_allocate_block(&mut self, prev: Value, cur: Value, wh_sz: Wsize) -> *mut Header {
-        let hd_sz = cur.get_header().get_wosize();
+        let curr_wo_sz = cur.get_header().get_wosize();
+        let wo_sz = wosize_whsize(wh_sz);
 
         #[cfg(feature = "check_invariants")]
         self.check_nf_allocate_block_invariant(prev, cur, wh_sz);
 
-        if *cur.get_header().get_wosize().get_val() < (wh_sz.get_val() + 1) {
-            // If we're here, the size of header is exactly wh_sz or wo_sz[=wosize_whsize(wh_sz)]
-            // This is only ever called from nf_allocate, we will never be breaking this invariant.
-            // So the size of header can only be these two values
-            //
-            // # equals wo_sz
-            //
-            // We'll change the header to size zero inside this branch. But later on before
-            // returning,it's changed back to wo_sz(the requested size)
-            //
-            // # equals to wh_sz
-            //
-            // We'll change the header to have size 0 in this branch. The next header right after
-            // it is what we must return. IMP: this must be handled while merging. Any value that
-            // we get, it might be succeeding an empty block header,so that check must be made.
-            //
-            //
-            // The reason we're setting the header here is so that we can actually merge it later.
-            // If we dont keep track of this header's 0 size, we wont know it's useless later on
-            // and it will forever create a gap which wont be merged.
-            //
+        // Near-fit (wosize == wh_sz) is forbidden: find_next never returns such blocks.
+        debug_assert!(
+            curr_wo_sz != wh_sz,
+            "tombstone-creating case (wosize == wh_sz) must not reach nf_allocate_block"
+        );
 
-            self.get_globals_mut().cur_wsz -= whsize_wosize(cur.get_header().get_wosize());
+        if curr_wo_sz == wo_sz {
+            // Case A: exact fit — consume the whole block.
+            // offset = wo_sz - wh_sz = -1, so the new block's header is written at
+            // cur-8 (the old free block's header slot) by the common code below.
+            // Unlink cur from the free list entirely.
+            self.get_globals_mut().cur_wsz -= whsize_wosize(curr_wo_sz);
             *get_next(&prev) = *get_next(&cur);
-
-            cur.get_header().set_wosize(Wsize::new(0));
-            cur.get_header().set_color(WHITE); // This will be overwritten if it
-                                               // was given wrong header, else
-                                               // this'll be the empty block(which
-                                               // is rightly always
-                                               // unreachable(WHITE))
-
-            // If the pointer we returned was nf_last, we change nf_last
-            // This way we're always keeping track of nf_last properly
             if cur == self.get_globals().nf_last {
                 self.get_globals_mut().nf_last = prev;
                 *get_next(&self.get_globals().nf_last) = VAL_NULL;
             }
         } else {
+            // Case B: normal split (curr_wo_sz >= wh_sz + 1).
+            // Shrink the free block header by wh_sz words; remaining wosize >= 1.
             self.get_globals_mut().cur_wsz -= wh_sz;
             *cur.get_header() = Header::new(
-                cur.get_header().get_wosize().get_val() - wh_sz.get_val(),
+                *curr_wo_sz.get_val() - *wh_sz.get_val(),
                 BLUE,
                 DEFAULT_TAG,
             );
         }
 
-        // since we always split and return the right half,we must calculate the offset at which we split.
-        //
-        // case wo_sz == hd_sz => -1, this causes the cur.get_header() to have right size
-        //
-        // case wh_sz == hd_sz => 0, empty block is already there, it'll put header for block to be
-        // returned properly
-        //
-        // case hd_sz >= wh_sz + 1 => positive value, the split block will have proper header
-        let offset = *hd_sz.get_val() as isize - *wh_sz.get_val() as isize;
+        // Carve from the right half of the (possibly shrunk) free block.
+        // Case A: offset = -1  -> new block header lands at cur-8 (old free header)
+        // Case B: offset >= 1  -> new block header lands at cur + offset*8 (right half)
+        let offset = *curr_wo_sz.get_val() as isize - *wh_sz.get_val() as isize;
 
-        // Set the header for the memory that we'll be returning, IMP: Make it have WHITE color,
-        // if it's reachable, it'll be made white by the  sweep
+        // Write the header of the new allocated block and mark it WHITE (live).
         let val = field_val(cur, offset + 1);
-        val.get_header()
-            .set_wosize(Wsize::new(*wosize_whsize(wh_sz).get_val()));
+        val.get_header().set_wosize(wo_sz);   // wo_sz already computed above
         val.get_header().set_color(WHITE);
 
         self.get_globals_mut().nf_prev = prev;
